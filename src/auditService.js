@@ -200,6 +200,28 @@ class AuditService {
       });
     }
 
+    // Edge case: Rapid transaction pattern detection
+    if (metrics.totalTransactions > 10) {
+      const avgTransactionsPerDay = metrics.totalTransactions / 30; // Assuming 30-day period
+      if (avgTransactionsPerDay > 5) {
+        recommendations.push({
+          type: 'INFO',
+          message: 'High transaction frequency detected',
+          action: 'Consider implementing velocity checks and enhanced monitoring'
+        });
+      }
+    }
+
+    // Edge case: Currency conversion dependency
+    const hasMultiCurrency = metrics.amountBreakdown.totalReceived > 0;
+    if (hasMultiCurrency && metrics.fundLegitimacy.legitimacyScore < 100) {
+      recommendations.push({
+        type: 'INFO',
+        message: 'Multi-currency transactions with unverified sources detected',
+        action: 'Verify exchange rate accuracy and source documentation'
+      });
+    }
+
     return recommendations;
   }
 

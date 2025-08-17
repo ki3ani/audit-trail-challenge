@@ -1,0 +1,292 @@
+{
+  "info": {
+    "name": "HoneyCoin Audit Trail API",
+    "description": "Enterprise-grade audit trail system for cross-border financial operations. Built for HoneyCoin's multi-currency business payment platform.\n\n## Perfect for HoneyCoin's Use Cases\n- **Treasury Operations**: Multi-currency balance reconciliation\n- **Compliance**: AML fund source verification and legitimacy tracking\n- **FX Trading Desk**: Currency conversion audit trails\n- **Cross-Border Payments**: Recursive transaction chain analysis\n- **Risk Management**: Automated recommendations and pattern detection\n\n## Supported Currencies\nUSD, KES, NGN (matching HoneyCoin's core markets)\n\n## Base URL\n`http://localhost:3000`\n\n## Authentication\nNo authentication required for this demo version.",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "🏠 Service Information",
+      "item": [
+        {
+          "name": "Root - Service Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            },
+            "description": "Get basic service information and available endpoints"
+          },
+          "response": []
+        },
+        {
+          "name": "API Documentation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api",
+              "host": ["{{baseUrl}}"],
+              "path": ["api"]
+            },
+            "description": "Get comprehensive API documentation with endpoint descriptions and response schemas"
+          },
+          "response": []
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Health check endpoint for monitoring service availability"
+          },
+          "response": []
+        }
+      ],
+      "description": "Basic service endpoints for health checks and documentation"
+    },
+    {
+      "name": "💰 Balance Endpoints",
+      "item": [
+        {
+          "name": "Get User Balance - User 1",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/balance/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "balance", "1"]
+            },
+            "description": "Get balance summary for User 1 (USD base currency)\n\nReturns:\n- Current stored balance\n- Calculated balance from transactions\n- Balance status (BALANCED/DISCREPANCY)\n- Base currency information"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Balance - User 2",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/balance/2",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "balance", "2"]
+            },
+            "description": "Get balance summary for User 2 (KES base currency)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Balance - User 3",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/balance/3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "balance", "3"]
+            },
+            "description": "Get balance summary for User 3 (NGN base currency)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Balance checking endpoints for different users with multi-currency support"
+    },
+    {
+      "name": "🔍 Audit Trail Endpoints",
+      "item": [
+        {
+          "name": "Full Audit Trail - User 1",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/audit/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audit", "1"]
+            },
+            "description": "Complete audit trail for User 1 including:\n\n## Transaction History\n- Chronological list of all transactions\n- Running balance calculations\n- Multi-currency conversions\n\n## Fund Legitimacy Trail\n- Recursive tracking of incoming transfers\n- Source verification (deposits vs transfers)\n- Legitimacy scoring\n\n## Risk Assessment\n- Automated recommendations\n- Pattern detection\n- Compliance indicators\n\n## Metrics\n- Transaction count breakdown\n- Amount summaries\n- Legitimacy percentages"
+          },
+          "response": []
+        },
+        {
+          "name": "Full Audit Trail - User 2",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/audit/2",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audit", "2"]
+            },
+            "description": "Complete audit trail for User 2 (demonstrates KES base currency handling)"
+          },
+          "response": []
+        },
+        {
+          "name": "Full Audit Trail - User 3",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/audit/3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audit", "3"]
+            },
+            "description": "Complete audit trail for User 3 (demonstrates NGN base currency and complex transfer chains)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Comprehensive audit trail endpoints showing the full power of the system"
+    },
+    {
+      "name": "❌ Error Handling Examples",
+      "item": [
+        {
+          "name": "Invalid User ID - String",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/audit/invalid",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audit", "invalid"]
+            },
+            "description": "Test error handling for invalid user ID format (string instead of number)\n\nExpected: 400 Bad Request with validation error"
+          },
+          "response": []
+        },
+        {
+          "name": "Non-existent User ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/audit/99999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audit", "99999"]
+            },
+            "description": "Test error handling for non-existent user\n\nExpected: 404 Not Found with user not found error"
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid Endpoint",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/nonexistent",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "nonexistent"]
+            },
+            "description": "Test 404 handling for invalid endpoints\n\nExpected: 404 Not Found with endpoint not found error and available endpoints list"
+          },
+          "response": []
+        }
+      ],
+      "description": "Examples demonstrating comprehensive error handling and validation"
+    },
+    {
+      "name": "🚀 Performance & Features Demo",
+      "item": [
+        {
+          "name": "Rate Limiting Test",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Test rate limiting by making multiple requests\n\nNote: Check response headers for:\n- X-RateLimit-Limit\n- X-RateLimit-Remaining\n- X-RateLimit-Reset\n\nAfter 100 requests in 15 minutes, you'll get a 429 Too Many Requests error"
+          },
+          "response": []
+        },
+        {
+          "name": "HoneyCoin Business Scenario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/audit/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audit", "1"]
+            },
+            "description": "## Real HoneyCoin Business Use Case\n\nThis demonstrates a **typical HoneyCoin customer scenario**:\n\n### **Cross-Border Business Operations**\n1. **Treasury funding**: 1000 USD initial business capital\n2. **International payout**: 100 USD → 80,000 NGN (supplier payment to Nigeria)\n3. **Customer collection**: 15,000 KES → 100 USD (payment from Kenya)\n4. **Circular trade**: 40,000 NGN → 50 USD (Nigerian customer payment)\n5. **Business withdrawal**: 200 USD (operational expenses)\n\n### **HoneyCoin Platform Features Demonstrated**\n✅ **Multi-currency wallets**: USD, KES, NGN support\n✅ **Cross-border payments**: International business transfers\n✅ **FX trading**: Automatic currency conversions\n✅ **Treasury management**: Balance reconciliation\n✅ **Compliance**: Fund source verification\n✅ **Risk assessment**: Automated monitoring\n\n**Perfect example of HoneyCoin's target customer workflow!**"
+          },
+          "response": []
+        }
+      ],
+      "description": "Advanced features and performance characteristics demonstration"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set timestamp for requests",
+          "pm.globals.set('timestamp', new Date().toISOString());"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Common tests for all requests",
+          "pm.test('Response time is reasonable', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has proper headers', function () {",
+          "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "});",
+          "",
+          "// Test for successful responses",
+          "if (pm.response.code === 200) {",
+          "    pm.test('Successful response has proper structure', function () {",
+          "        const jsonData = pm.response.json();",
+          "        if (jsonData.success !== undefined) {",
+          "            pm.expect(jsonData.success).to.be.true;",
+          "            pm.expect(jsonData).to.have.property('data');",
+          "        }",
+          "    });",
+          "}",
+          "",
+          "// Test for error responses",
+          "if (pm.response.code >= 400) {",
+          "    pm.test('Error response has proper structure', function () {",
+          "        const jsonData = pm.response.json();",
+          "        pm.expect(jsonData).to.have.property('error');",
+          "        pm.expect(jsonData).to.have.property('code');",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string",
+      "description": "Base URL for the HoneyCoin Audit Trail API"
+    }
+  ]
+}

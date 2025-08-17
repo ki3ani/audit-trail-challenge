@@ -48,8 +48,13 @@ class DatabaseManager {
           t.receiverid,
           u.currency as user_base_currency
         FROM transactions t
-        JOIN users u ON t.userid = u.userid
-        WHERE t.userid = $1
+        JOIN users u ON u.userid = $1
+        WHERE (
+          -- User initiated the transaction (deposits, withdrawals, outgoing transfers)
+          t.userid = $1
+          -- OR user received a transfer
+          OR (t.transactiontype = 'transfer' AND t.receiverid = $1)
+        )
         AND t.status = 'successful'
         ORDER BY t.fulltimestamp
       ),
@@ -82,7 +87,8 @@ class DatabaseManager {
           END as balance_impact_base_currency
         FROM user_transactions ut
         LEFT JOIN currencyconversions cc ON 
-          (ut.transactiontype IN ('deposit', 'withdrawal') AND cc.fromcurrency = ut.sendercurrency AND cc.tocurrency = ut.user_base_currency)
+          (ut.transactiontype = 'deposit' AND cc.fromcurrency = ut.receivercurrency AND cc.tocurrency = ut.user_base_currency)
+          OR (ut.transactiontype = 'withdrawal' AND cc.fromcurrency = ut.sendercurrency AND cc.tocurrency = ut.user_base_currency)
           OR (ut.transactiontype = 'transfer' AND ut.senderid = $1 AND cc.fromcurrency = ut.sendercurrency AND cc.tocurrency = ut.user_base_currency)
           OR (ut.transactiontype = 'transfer' AND ut.receiverid = $1 AND cc.fromcurrency = ut.receivercurrency AND cc.tocurrency = ut.user_base_currency)
       ),
@@ -130,7 +136,7 @@ class DatabaseManager {
           1 as trail_depth,
           ARRAY[t.transactionid] as transaction_path,
           ARRAY[t.senderid, t.receiverid] as user_path,
-          t.receiveramount as traced_amount,
+          t.receiveramount::numeric(10,2) as traced_amount,
           t.receivercurrency as traced_currency,
           false as is_original_source
         FROM transactions t
@@ -155,7 +161,7 @@ class DatabaseManager {
           ft.user_path || t.senderid,
           CASE 
             WHEN t.receivercurrency = ft.traced_currency THEN t.receiveramount
-            ELSE t.receiveramount * COALESCE(cc.conversionrate, 1.0)
+            ELSE (t.receiveramount * COALESCE(cc.conversionrate, 1.0))::numeric(10,2)
           END as traced_amount,
           ft.traced_currency,
           CASE 
