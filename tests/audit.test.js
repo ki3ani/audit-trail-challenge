@@ -59,7 +59,6 @@ describe('HoneyCoin Audit Trail API', () => {
         expect(response.body.data).toHaveProperty('recommendations');
         expect(response.body.data).toHaveProperty('metrics');
       } else {
-        // If database not connected, should return appropriate error
         expect([503, 404, 500]).toContain(response.status);
       }
     });
@@ -119,8 +118,8 @@ describe('HoneyCoin Audit Trail API', () => {
     test('Rate limiting headers should be present', async () => {
       const response = await request(app).get('/api/health');
       
-      expect(response.headers).toHaveProperty('x-ratelimit-limit');
-      expect(response.headers).toHaveProperty('x-ratelimit-remaining');
+      expect(response.headers).toHaveProperty('ratelimit-limit');
+      expect(response.headers).toHaveProperty('ratelimit-remaining');
     });
   });
 });

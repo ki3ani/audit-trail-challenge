@@ -23,12 +23,29 @@ class DatabaseManager {
   async query(text, params) {
     const start = Date.now();
     try {
-      const res = await this.pool.query(text, params);
+      // Add query timeout for large dataset protection
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Query timeout: exceeded 10 seconds')), 10000);
+      });
+      
+      const queryPromise = this.pool.query(text, params);
+      const res = await Promise.race([queryPromise, timeoutPromise]);
+      
       const duration = Date.now() - start;
-      console.log('Executed query', { text: text.substring(0, 100), duration, rows: res.rowCount });
+      console.log('Executed query', { 
+        text: text.substring(0, 100), 
+        duration, 
+        rows: res.rowCount,
+        performance: duration < 1000 ? 'excellent' : duration < 3000 ? 'good' : 'needs_optimization'
+      });
       return res;
     } catch (error) {
-      console.error('Database query error:', { text: text.substring(0, 100), error: error.message });
+      const duration = Date.now() - start;
+      console.error('Database query error:', { 
+        text: text.substring(0, 100), 
+        error: error.message,
+        duration 
+      });
       throw error;
     }
   }
@@ -50,9 +67,11 @@ class DatabaseManager {
         FROM transactions t
         JOIN users u ON u.userid = $1
         WHERE (
-          -- User initiated the transaction (deposits, withdrawals, outgoing transfers)
-          t.userid = $1
-          -- OR user received a transfer
+          -- User initiated the transaction (deposits, withdrawals)
+          (t.transactiontype IN ('deposit', 'withdrawal') AND t.userid = $1)
+          -- OR user is sender in a transfer
+          OR (t.transactiontype = 'transfer' AND t.senderid = $1)
+          -- OR user is receiver in a transfer
           OR (t.transactiontype = 'transfer' AND t.receiverid = $1)
         )
         AND t.status = 'successful'
@@ -114,7 +133,8 @@ class DatabaseManager {
         running_balance,
         user_base_currency
       FROM running_balance
-      ORDER BY fulltimestamp;
+      ORDER BY fulltimestamp DESC
+      LIMIT 100;  -- Limit for performance with high-volume users
     `;
 
     return await this.query(query, [userId]);
@@ -123,6 +143,7 @@ class DatabaseManager {
   async getFundLegitimacyTrail(userId) {
     const query = `
       WITH RECURSIVE fund_trail AS (
+        -- OPTIMIZED BASE CASE: Limit scope with time filtering and result limits
         SELECT 
           t.transactionid,
           t.senderid,
@@ -143,9 +164,11 @@ class DatabaseManager {
         WHERE t.receiverid = $1
         AND t.transactiontype = 'transfer'
         AND t.status = 'successful'
+        AND t.fulltimestamp > (CURRENT_DATE - INTERVAL '6 months') -- Aggressive time limit for performance
         
         UNION ALL
         
+        -- OPTIMIZED RECURSIVE CASE: Reduced depth and better filtering
         SELECT 
           t.transactionid,
           t.senderid,
@@ -171,10 +194,12 @@ class DatabaseManager {
         FROM fund_trail ft
         JOIN transactions t ON t.receiverid = ft.senderid
         LEFT JOIN currencyconversions cc ON cc.fromcurrency = t.receivercurrency AND cc.tocurrency = ft.traced_currency
-        WHERE ft.trail_depth < 10
+        WHERE ft.trail_depth < 3  -- Further reduced for large dataset performance
         AND t.status = 'successful'
         AND t.fulltimestamp <= ft.fulltimestamp
+        AND t.fulltimestamp > (CURRENT_DATE - INTERVAL '6 months') -- Same aggressive time limit
         AND NOT (t.senderid = ANY(ft.user_path))
+        AND array_length(ft.user_path, 1) < 20  -- Prevent excessive path lengths
       ),
       
       legitimate_sources AS (
@@ -211,7 +236,8 @@ class DatabaseManager {
         legitimacy_status,
         is_original_source
       FROM legitimate_sources
-      ORDER BY trail_depth, fulltimestamp;
+      ORDER BY trail_depth, fulltimestamp
+      LIMIT 20;  -- Aggressive limit for large dataset performance
     `;
 
     return await this.query(query, [userId]);
@@ -256,7 +282,11 @@ class DatabaseManager {
             END
           ), 0) as calculated_balance
         FROM user_summary us
-        LEFT JOIN transactions t ON t.userid = $1 OR t.senderid = $1 OR t.receiverid = $1
+        LEFT JOIN transactions t ON (
+          (t.transactiontype IN ('deposit', 'withdrawal') AND t.userid = $1)
+          OR (t.transactiontype = 'transfer' AND t.senderid = $1)
+          OR (t.transactiontype = 'transfer' AND t.receiverid = $1)
+        )
         LEFT JOIN currencyconversions cc1 ON cc1.fromcurrency = t.receivercurrency AND cc1.tocurrency = us.base_currency
         LEFT JOIN currencyconversions cc2 ON cc2.fromcurrency = t.sendercurrency AND cc2.tocurrency = us.base_currency
         LEFT JOIN currencyconversions cc3 ON cc3.fromcurrency = t.sendercurrency AND cc3.tocurrency = us.base_currency

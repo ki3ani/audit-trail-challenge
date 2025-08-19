@@ -27,7 +27,6 @@ class AuditTrailServer {
       }
     }));
 
-    // CORS configuration
     this.app.use(cors({
       origin: process.env.NODE_ENV === 'production' 
         ? ['https://honeycoin.com', 'https://app.honeycoin.com'] 
@@ -67,7 +66,6 @@ class AuditTrailServer {
   }
 
   setupRoutes() {
-    // Health check at root
     this.app.get('/', (req, res) => {
       res.json({
         service: 'HoneyCoin Audit Trail API',
@@ -88,11 +86,9 @@ class AuditTrailServer {
   }
 
   setupErrorHandling() {
-    // Global error handler
     this.app.use((error, req, res, next) => {
       console.error('Unhandled error:', error);
 
-      // Database connection errors
       if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
         return res.status(503).json({
           error: 'Service unavailable',
@@ -110,7 +106,6 @@ class AuditTrailServer {
         });
       }
 
-      // Default error response
       res.status(500).json({
         error: 'Internal server error',
         message: 'An unexpected error occurred',
@@ -118,13 +113,11 @@ class AuditTrailServer {
       });
     });
 
-    // Handle uncaught exceptions
     process.on('uncaughtException', (error) => {
       console.error('Uncaught Exception:', error);
       process.exit(1);
     });
 
-    // Handle unhandled promise rejections
     process.on('unhandledRejection', (reason, promise) => {
       console.error('Unhandled Rejection at:', promise, 'reason:', reason);
       process.exit(1);
@@ -157,19 +150,16 @@ class AuditTrailServer {
       console.log('Server stopped');
     }
 
-    // Close database connections
     const db = require('./database');
     await db.close();
     console.log('Database connections closed');
   }
 }
 
-// Start server if this file is run directly
 if (require.main === module) {
   const server = new AuditTrailServer();
   server.start();
 
-  // Graceful shutdown
   process.on('SIGTERM', async () => {
     console.log('SIGTERM received, shutting down gracefully');
     await server.stop();

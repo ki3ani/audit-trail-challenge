@@ -2,7 +2,6 @@ const express = require('express');
 const auditService = require('./auditService');
 const router = express.Router();
 
-// API Documentation endpoint
 router.get('/api', (req, res) => {
   res.json({
     name: 'HoneyCoin Audit Trail API',
@@ -33,7 +32,6 @@ router.get('/api', (req, res) => {
   });
 });
 
-// Health check endpoint
 router.get('/api/health', (req, res) => {
   res.json({
     status: 'healthy',
@@ -42,7 +40,6 @@ router.get('/api/health', (req, res) => {
   });
 });
 
-// Complete audit trail endpoint
 router.get('/api/audit/:userId', async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
@@ -93,7 +90,6 @@ router.get('/api/audit/:userId', async (req, res) => {
   }
 });
 
-// Simple balance endpoint
 router.get('/api/balance/:userId', async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
