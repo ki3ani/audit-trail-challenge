@@ -268,11 +268,6 @@ generateRecommendations(summary, metrics) {
 # Run tests
 npm test
 
-# Run with coverage
-npm run test:coverage
-
-# Run linting
-npm run lint
 ```
 
 ## 📋 Key Assumptions
