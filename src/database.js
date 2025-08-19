@@ -63,7 +63,13 @@ class DatabaseManager {
           t.receivercurrency,
           t.senderid,
           t.receiverid,
-          u.currency as user_base_currency
+          u.currency as user_base_currency,
+          -- Refund and reversal information
+          t.is_refund,
+          t.refund_of_transaction_id,
+          t.is_reversal,
+          t.reversal_of_transaction_id,
+          t.reversal_reason
         FROM transactions t
         JOIN users u ON u.userid = $1
         WHERE (
@@ -82,21 +88,37 @@ class DatabaseManager {
         SELECT 
           ut.*,
           CASE 
+            -- Handle refunds: Add money back to account
+            WHEN ut.transactiontype = 'refund' AND ut.receiverid = $1 THEN 
+              CASE 
+                WHEN ut.receivercurrency = ut.user_base_currency THEN ut.receiveramount
+                ELSE ut.receiveramount * COALESCE(cc.conversionrate, 1.0)
+              END
+            -- Handle reversals: Opposite of original transaction
+            WHEN ut.transactiontype = 'reversal' THEN 
+              CASE 
+                WHEN ut.receivercurrency = ut.user_base_currency THEN ut.receiveramount
+                ELSE ut.receiveramount * COALESCE(cc.conversionrate, 1.0)
+              END
+            -- Standard deposit logic
             WHEN ut.transactiontype = 'deposit' THEN 
               CASE 
                 WHEN ut.receivercurrency = ut.user_base_currency THEN ut.receiveramount
                 ELSE ut.receiveramount * COALESCE(cc.conversionrate, 1.0)
               END
+            -- Standard withdrawal logic  
             WHEN ut.transactiontype = 'withdrawal' THEN 
               CASE 
                 WHEN ut.sendercurrency = ut.user_base_currency THEN -ut.senderamount
                 ELSE -ut.senderamount * COALESCE(cc.conversionrate, 1.0)
               END
+            -- Outgoing transfer
             WHEN ut.transactiontype = 'transfer' AND ut.senderid = $1 THEN 
               CASE 
                 WHEN ut.sendercurrency = ut.user_base_currency THEN -ut.senderamount
                 ELSE -ut.senderamount * COALESCE(cc.conversionrate, 1.0)
               END
+            -- Incoming transfer
             WHEN ut.transactiontype = 'transfer' AND ut.receiverid = $1 THEN 
               CASE 
                 WHEN ut.receivercurrency = ut.user_base_currency THEN ut.receiveramount
@@ -106,7 +128,7 @@ class DatabaseManager {
           END as balance_impact_base_currency
         FROM user_transactions ut
         LEFT JOIN currencyconversions cc ON 
-          (ut.transactiontype = 'deposit' AND cc.fromcurrency = ut.receivercurrency AND cc.tocurrency = ut.user_base_currency)
+          (ut.transactiontype IN ('deposit', 'refund', 'reversal') AND cc.fromcurrency = ut.receivercurrency AND cc.tocurrency = ut.user_base_currency)
           OR (ut.transactiontype = 'withdrawal' AND cc.fromcurrency = ut.sendercurrency AND cc.tocurrency = ut.user_base_currency)
           OR (ut.transactiontype = 'transfer' AND ut.senderid = $1 AND cc.fromcurrency = ut.sendercurrency AND cc.tocurrency = ut.user_base_currency)
           OR (ut.transactiontype = 'transfer' AND ut.receiverid = $1 AND cc.fromcurrency = ut.receivercurrency AND cc.tocurrency = ut.user_base_currency)

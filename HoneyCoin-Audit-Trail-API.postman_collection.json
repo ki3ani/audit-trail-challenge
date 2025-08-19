@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "HoneyCoin Audit Trail API",
-    "description": "Enterprise-grade audit trail system for cross-border financial operations. Built for HoneyCoin's multi-currency business payment platform.\n\n## Perfect for HoneyCoin's Use Cases\n- **Treasury Operations**: Multi-currency balance reconciliation\n- **Compliance**: AML fund source verification and legitimacy tracking\n- **FX Trading Desk**: Currency conversion audit trails\n- **Cross-Border Payments**: Recursive transaction chain analysis\n- **Risk Management**: Automated recommendations and pattern detection\n\n## Supported Currencies\nUSD, KES, NGN (matching HoneyCoin's core markets)\n\n## Base URL\n`http://localhost:3000`\n\n## Authentication\nNo authentication required for this demo version.",
+    "description": "Enterprise-grade audit trail system for cross-border financial operations. Built for HoneyCoin's multi-currency business payment platform.\n\n## Perfect for HoneyCoin's Use Cases\n- **Treasury Operations**: Multi-currency balance reconciliation\n- **Compliance**: AML fund source verification and legitimacy tracking\n- **FX Trading Desk**: Currency conversion audit trails\n- **Cross-Border Payments**: Recursive transaction chain analysis\n- **Risk Management**: Automated recommendations and pattern detection\n- **Refund Processing**: Complete audit trails for customer refunds\n- **Dispute Resolution**: Transaction reversal tracking with compliance documentation\n\n## Supported Transaction Types\n- Deposits, Withdrawals, Transfers\n- **Refunds**: Customer refund processing with original transaction references\n- **Reversals**: Dispute resolution with mandatory reason documentation\n\n## Supported Currencies\nUSD, KES, NGN (matching HoneyCoin's core markets)\n\n## Base URL\n`http://localhost:3000`\n\n## Authentication\nNo authentication required for this demo version.",
     "version": "1.0.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -115,7 +115,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "audit", "1"]
             },
-            "description": "Complete audit trail for User 1 including:\n\n## Transaction History\n- Chronological list of all transactions\n- Running balance calculations\n- Multi-currency conversions\n\n## Fund Legitimacy Trail\n- Recursive tracking of incoming transfers\n- Source verification (deposits vs transfers)\n- Legitimacy scoring\n\n## Risk Assessment\n- Automated recommendations\n- Pattern detection\n- Compliance indicators\n\n## Metrics\n- Transaction count breakdown\n- Amount summaries\n- Legitimacy percentages"
+            "description": "Complete audit trail for User 1 including:\n\n## Transaction History\n- Chronological list of all transactions\n- Running balance calculations\n- Multi-currency conversions\n- **Refund and reversal tracking**\n\n## Fund Legitimacy Trail\n- Recursive tracking of incoming transfers\n- Source verification (deposits vs transfers)\n- Legitimacy scoring\n\n## Risk Assessment\n- Automated recommendations\n- Pattern detection\n- Compliance indicators\n\n## Metrics\n- Transaction count breakdown (including refunds and reversals)\n- Amount summaries\n- Legitimacy percentages\n\n## Edge Cases Handled\n- **Refund transactions**: Complete audit trail with original transaction references\n- **Reversal transactions**: Comprehensive tracking with reversal reasons for compliance\n- **Balance impact calculations**: Proper handling of refunds (positive impact) and reversals"
           },
           "response": []
         },
@@ -143,12 +143,60 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "audit", "3"]
             },
-            "description": "Complete audit trail for User 3 (demonstrates NGN base currency and complex transfer chains)"
+            "description": "Complete audit trail for User 3 (demonstrates NGN base currency, complex transfer chains, and refund handling)"
           },
           "response": []
         }
       ],
       "description": "Comprehensive audit trail endpoints showing the full power of the system"
+    },
+    {
+      "name": "🔄 Refunds & Reversals Testing",
+      "item": [
+        {
+          "name": "User 3 - Refund Scenario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/audit/3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audit", "3"]
+            },
+            "description": "Test refund handling for User 3\n\n## What to Look For:\n- **Refund transactions**: `isRefund: true`\n- **Original transaction reference**: `refundOfTransactionId`\n- **Positive balance impact**: Refunds add money back to account\n- **Metrics breakdown**: Separate counting of refunds in transaction breakdown\n- **Amount tracking**: `totalRefunded` in amount breakdown\n\n## Business Context:\nUser 3 received a refund of 50,000 NGN from a previous transaction, demonstrating how the system handles customer refunds and maintains complete audit trails."
+          },
+          "response": []
+        },
+        {
+          "name": "User 1 - Reversal Scenario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/audit/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audit", "1"]
+            },
+            "description": "Test reversal handling for User 1\n\n## What to Look For:\n- **Reversal transactions**: `isReversal: true`\n- **Original transaction reference**: `reversalOfTransactionId`\n- **Reversal reason**: Compliance-required reason field\n- **Metrics breakdown**: Separate counting of reversals\n- **Amount tracking**: `totalReversed` in amount breakdown\n\n## Business Context:\nUser 1 had a withdrawal reversed due to a customer dispute, showing how the system handles transaction reversals with full audit compliance including documented reasons."
+          },
+          "response": []
+        },
+        {
+          "name": "Balance Verification - User 3",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/balance/3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "balance", "3"]
+            },
+            "description": "Verify that balance calculations properly account for refunds\n\n## Validation Points:\n- Balance should reflect the positive impact of refunds\n- `calculatedBalance` should match `currentBalance`\n- `balanceStatus` should be 'BALANCED' (no discrepancies)\n\nThis demonstrates that refunds are properly integrated into balance calculations."
+          },
+          "response": []
+        }
+      ],
+      "description": "Specialized testing for refund and reversal transaction handling - critical for financial compliance"
     },
     {
       "name": "❌ Error Handling Examples",

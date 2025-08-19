@@ -10,6 +10,7 @@
     "lint": "eslint src/",
     "setup-db": "psql -d honeycoin -f database-setup.sql",
     "load-test-data": "sudo -u postgres psql -d honeycoin -f performance-test-data.sql",
+    "setup-refunds-reversals": "sudo -u postgres psql -d honeycoin -f refunds-reversals-enhancement.sql",
     "performance-test": "node performance-test.js"
   },
   "keywords": ["audit", "blockchain", "fintech", "postgresql", "express"],

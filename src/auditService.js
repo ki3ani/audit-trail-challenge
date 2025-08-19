@@ -69,7 +69,13 @@ class AuditService {
       receiverId: tx.receiverid,
       balanceImpact: parseFloat(tx.balance_impact_base_currency) || 0,
       runningBalance: parseFloat(tx.running_balance) || 0,
-      baseCurrency: tx.user_base_currency
+      baseCurrency: tx.user_base_currency,
+      // Refund and reversal information
+      isRefund: tx.is_refund || false,
+      refundOfTransactionId: tx.refund_of_transaction_id,
+      isReversal: tx.is_reversal || false,
+      reversalOfTransactionId: tx.reversal_of_transaction_id,
+      reversalReason: tx.reversal_reason
     }));
   }
 
@@ -121,11 +127,15 @@ class AuditService {
     const deposits = transactions.filter(tx => tx.type === 'deposit');
     const withdrawals = transactions.filter(tx => tx.type === 'withdrawal');
     const transfers = transactions.filter(tx => tx.type === 'transfer');
+    const refunds = transactions.filter(tx => tx.type === 'refund');
+    const reversals = transactions.filter(tx => tx.type === 'reversal');
 
     const totalDeposited = deposits.reduce((sum, tx) => sum + tx.balanceImpact, 0);
     const totalWithdrawn = Math.abs(withdrawals.reduce((sum, tx) => sum + tx.balanceImpact, 0));
     const totalTransferred = Math.abs(transfers.filter(tx => tx.balanceImpact < 0).reduce((sum, tx) => sum + tx.balanceImpact, 0));
     const totalReceived = transfers.filter(tx => tx.balanceImpact > 0).reduce((sum, tx) => sum + tx.balanceImpact, 0);
+    const totalRefunded = refunds.reduce((sum, tx) => sum + tx.balanceImpact, 0);
+    const totalReversed = reversals.reduce((sum, tx) => sum + tx.balanceImpact, 0);
 
     const legitimateTrails = fundTrail.filter(trail => 
       trail.legitimacyStatus === 'LEGITIMATE_DEPOSIT' || 
@@ -140,13 +150,17 @@ class AuditService {
       transactionBreakdown: {
         deposits: deposits.length,
         withdrawals: withdrawals.length,
-        transfers: transfers.length
+        transfers: transfers.length,
+        refunds: refunds.length,
+        reversals: reversals.length
       },
       amountBreakdown: {
         totalDeposited: Math.round(totalDeposited * 100) / 100,
         totalWithdrawn: Math.round(totalWithdrawn * 100) / 100,
         totalTransferred: Math.round(totalTransferred * 100) / 100,
-        totalReceived: Math.round(totalReceived * 100) / 100
+        totalReceived: Math.round(totalReceived * 100) / 100,
+        totalRefunded: Math.round(totalRefunded * 100) / 100,
+        totalReversed: Math.round(totalReversed * 100) / 100
       },
       fundLegitimacy: {
         totalTrails: fundTrail.length,
