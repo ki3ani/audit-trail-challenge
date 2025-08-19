@@ -1,4 +1,4 @@
-# HoneyCoin Audit Trail System
+# Audit Trail System
 
 Enterprise-grade financial transaction audit system built for HoneyCoin's cross-border payment platform. Demonstrates advanced PostgreSQL recursive queries, multi-currency transaction analysis, and production-ready performance optimization.
 
